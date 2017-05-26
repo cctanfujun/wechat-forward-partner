@@ -12,7 +12,6 @@ public class Constant {
 	public static final String BASE_URL = "https://webpush2.weixin.qq.com/cgi-bin/mmwebwx-bin";
 	public static final String JS_LOGIN_URL = "https://login.weixin.qq.com/jslogin";
 	public static final String QRCODE_URL = "https://login.weixin.qq.com/qrcode/";
-	
 	public static final String ITPK_API = "http://i.itpk.cn/api.php";
 	
 	// 特殊用户 须过滤
