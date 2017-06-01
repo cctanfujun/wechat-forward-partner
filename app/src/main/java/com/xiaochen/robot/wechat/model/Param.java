@@ -10,7 +10,7 @@ public class Param {
      * BaseRequest : {"Uin":"xxx","Sid":"xxx","Skey":"xxx","DeviceID":"xxx"}
      */
 
-    public BaseRequestBean BaseRequest;
+    public BaseRequestBean BaseRequest = new BaseRequestBean();
 
     public static class BaseRequestBean {
         /**

@@ -2,6 +2,7 @@ package com.xiaochen.api
 
 import com.xiaochen.blade.blade.kit.base.DateKit
 import com.xiaochen.robot.wechat.Constant
+import com.xiaochen.robot.wechat.model.WxInitResponse
 import io.reactivex.Observable
 import okhttp3.ResponseBody
 import retrofit2.http.*
@@ -40,12 +41,23 @@ interface WeChatApi {
 
     @FormUrlEncoded
     @POST("https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxinit")
-    fun wxInit(@Field("params") t: String = "webwx",)
+    fun wxInit(@Field("params") params: String,
+               @Query("r") r: String = DateKit.getCurrentUnixTime().toString(),
+               @Query("pass_ticket") pass_ticket: String,
+               @Query("skey") skey: String
+
+    ):Observable<WxInitResponse>
+
+    @FormUrlEncoded
+    @POST("https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact")
+    fun getContacts(@Field("params") params: String,
+                    @Query("r") r: String = DateKit.getCurrentUnixTime().toString(),
+                    @Query("pass_ticket") pass_ticket: String,
+                    @Query("skey") skey: String
+    ):Observable<String>
 
     @GET
-    fun request(@Url url: String):Observable<String>
-
-
+    fun request(@Url url: String): Observable<String>
 
 
 }
