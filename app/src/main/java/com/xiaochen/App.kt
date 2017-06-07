@@ -3,12 +3,8 @@ package com.xiaochen
 import android.app.Application
 import android.content.Context
 import com.facebook.stetho.Stetho
-import com.facebook.stetho.okhttp3.StethoInterceptor
-import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.converter.scalars.ScalarsConverterFactory
+import com.xiaochen.robot.wechat.model.WeChatModel
+import io.reactivex.subjects.PublishSubject
 
 
 /**
@@ -21,17 +17,8 @@ class App : Application() {
 
         @JvmField
         var context: Context? = null
-
-        val retrofit = Retrofit.Builder()
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(ScalarsConverterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl("https://login.weixin.qq.com/")
-                .client(OkHttpClient.Builder()
-                        .addNetworkInterceptor(StethoInterceptor())
-                        .build()
-                )
-                .build()
+        val wechatModel = WeChatModel();
+        val  smsOb = PublishSubject.create<String>()
 
     }
 

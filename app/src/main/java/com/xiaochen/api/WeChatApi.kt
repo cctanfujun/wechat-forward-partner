@@ -15,8 +15,10 @@ import retrofit2.http.*
 interface WeChatApi {
 
 
+
     @GET(Constant.JS_LOGIN_URL)
     fun getUUid(
+            @Header("User-Agent") header: String,
             @Query("appid") appid: String = "wx782c26e4c19acffb",
             @Query("fun") funp: String = "new",
             @Query("lang") lang: String = "zh_CN",
@@ -24,17 +26,16 @@ interface WeChatApi {
 
     ): Observable<String>
 
-    @FormUrlEncoded
     @POST("https://login.weixin.qq.com/qrcode/{uuid}")
     fun getQRIMG(
+            @Header("User-Agent") header: String,
             @Path("uuid") uuid: String,
-            @Field("t") t: String = "webwx",
-            @Field("_") time: String = DateKit.getCurrentUnixTime().toString()
+            @Query("t") t: String = "webwx",
+            @Query("_") time: String = DateKit.getCurrentUnixTime().toString()
     ): Observable<ResponseBody>
 
     @GET("https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login")
     fun login(
-            @Header("User-Agent") header: String,
             @Query("tip") tip: Int = 0,
             @Query("uuid", encoded = false) uuid: String,
             @Query("_") time: String = DateKit.getCurrentUnixTime().toString()
@@ -77,7 +78,6 @@ interface WeChatApi {
     ): Observable<ContactResponse>
 
 
-
     @POST
     fun sendMessage(
             @Url url: String,
@@ -88,11 +88,6 @@ interface WeChatApi {
             @Query("pass_ticket") pass_ticket: String,
             @Query("skey") skey: String
     ): Observable<ContactResponse>
-
-
-
-
-
 
 
     @GET

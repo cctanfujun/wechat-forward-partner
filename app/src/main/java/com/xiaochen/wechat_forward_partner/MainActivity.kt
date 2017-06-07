@@ -2,6 +2,7 @@ package com.xiaochen.wechat_forward_partner
 
 import android.app.Activity
 import android.os.Bundle
+import android.support.v4.util.Pair
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.ImageView
@@ -11,18 +12,19 @@ import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.xiaochen.App
+import com.xiaochen.App.Companion.wechatModel
 import com.xiaochen.api.WeChatApi
 import com.xiaochen.blade.blade.kit.base.DateKit
 import com.xiaochen.blade.blade.kit.base.StringKit
-import com.xiaochen.blade.blade.kit.http.HttpRequest
-import com.xiaochen.robot.wechat.Constant
-import com.xiaochen.robot.wechat.model.WeChatModel
+import com.xiaochen.robot.wechat.model.ContactResponse
 import com.xiaochen.robot.wechat.util.CookieUtil
 import com.xiaochen.robot.wechat.util.Matchers
 import com.xiaochen.robot.wechat.util.MyCookieCache
 import com.xiaochen.robot.wechat.util.MyCookieJar
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.CookieJar
@@ -33,11 +35,12 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 
 
 class MainActivity : AppCompatActivity() {
 
-    val wechatModel = WeChatModel();
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +54,7 @@ class MainActivity : AppCompatActivity() {
 
 
         val gson = GsonBuilder().setLenient().create()
+
 
         val cookieretrofit = Retrofit.Builder()
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
@@ -78,19 +82,24 @@ class MainActivity : AppCompatActivity() {
         val cookieApi = cookieretrofit.create(WeChatApi::class.java)
         val api = retrofit.create(WeChatApi::class.java)
 
-        api.getUUid()
+
+        api.getUUid(wechatModel.requestHeader)
                 .subscribeOn(Schedulers.io())
                 .map {
                     resStr ->
+                    val a = cookieJar
                     Matchers.match("window.QRLogin.uuid = \"(.*)\";", resStr)
                 }
-                .map {
+                .flatMap {
                     uuid ->
                     wechatModel.uuid = uuid
-                    val url = Constant.QRCODE_URL + uuid
-                    val output = File(cacheDir, "temp.jpg")
-                    HttpRequest.post(url, true, "t", "webwx", "_", DateKit.getCurrentUnixTime()).receive(output)
-                    output
+                    api.getQRIMG(wechatModel.requestHeader,uuid)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                }
+                .map {
+                    response ->
+                    writeResponseBodyToDisk(response.byteStream())
                 }
                 .observeOn(AndroidSchedulers.mainThread())
                 .map {
@@ -106,7 +115,7 @@ class MainActivity : AppCompatActivity() {
 
 
         login.setOnClickListener {
-            api.login(wechatModel.requestHeader, 0, wechatModel.uuid)
+            api.login(0, wechatModel.uuid)
                     .subscribeOn(Schedulers.io())
                     .filter { res ->
                         test(res)
@@ -184,13 +193,96 @@ class MainActivity : AppCompatActivity() {
                                 .subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
                     }
-                    .flatMap {
-                        ress ->
+                    .subscribe(
+                            { res ->
+
+                            },
+                            {
+                                error ->
+                                error.message?.let { it1 -> test(it1) }
+
+                            }
+
+                    );
+
+            testsend.setOnClickListener {
+                Observable.just("测试信息")
+                        .flatMap<Pair<String, ContactResponse>> {
+                            message ->
+                            val contactsUrl = wechatModel.baseUrl + "/webwxgetcontact"
+                            val gson = Gson()
+                            val stringParams = gson.toJson(wechatModel.param)
+
+                            val contactsConbine = api.getContacts(
+                                    contactsUrl,
+                                    stringParams,
+                                    wechatModel.cookie,
+                                    "application/json;charset=utf-8",
+                                    DateKit.getCurrentUnixTime().toString(),
+                                    wechatModel.pass_ticket,
+                                    wechatModel.param.BaseRequest.Skey
+                            )
+                                    .subscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+
+                            Observable.combineLatest(
+                                    Observable.just(message),
+                                    contactsConbine,
+                                    BiFunction<String, ContactResponse, Pair<String, ContactResponse>> {
+                                        s, integer ->
+                                        Pair(s, integer)
+                                    })
+
+                        }
+                        .flatMap {
+                            pair ->
+                            val message = pair.first
+                            val contactresponse = pair.second
+                            Observable.fromIterable(contactresponse.MemberList)
+                                    .filter { it.NickName == "晓_晨DEV" }
+                                    .take(1)
+                                    .flatMap {
+                                        val sendMessageUrl = wechatModel.baseUrl + "/webwxsendmsg"
+                                        val gson = Gson()
+                                        val baseRequest = gson.toJson(wechatModel.param)
+                                        val body = JSONObject()
+                                        val clientMsgId = DateKit.getCurrentUnixTime().toString() + StringKit.getRandomNumber(5)
+                                        val Msg = JSONObject()
+                                        Msg.put("Type", 1)
+                                        Msg.put("Content", message)
+                                        Msg.put("FromUserName", wechatModel.userName)
+                                        Msg.put("ToUserName", it.UserName)
+                                        Msg.put("LocalID", clientMsgId)
+                                        Msg.put("ClientMsgId", clientMsgId)
+                                        body.put("BaseRequest", baseRequest)
+                                        body.put("Msg", Msg)
+                                        api.getContacts(
+                                                sendMessageUrl,
+                                                body.toString(),
+                                                wechatModel.cookie,
+                                                "application/json;charset=utf-8",
+                                                DateKit.getCurrentUnixTime().toString(),
+                                                wechatModel.pass_ticket,
+                                                wechatModel.param.BaseRequest.Skey
+                                        )
+                                                .subscribeOn(Schedulers.io())
+                                                .observeOn(AndroidSchedulers.mainThread())
+                                    }
+
+
+                        }.subscribe()
+
+
+            }
+
+            App.smsOb
+                    .flatMap<Pair<String, ContactResponse>> {
+                        message ->
                         val contactsUrl = wechatModel.baseUrl + "/webwxgetcontact"
                         val gson = Gson()
                         val stringParams = gson.toJson(wechatModel.param)
 
-                        api.getContacts(
+                        val contactsConbine = api.getContacts(
                                 contactsUrl,
                                 stringParams,
                                 wechatModel.cookie,
@@ -202,16 +294,23 @@ class MainActivity : AppCompatActivity() {
                                 .subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
 
+                        Observable.combineLatest(
+                                Observable.just(message),
+                                contactsConbine,
+                                BiFunction<String, ContactResponse, Pair<String, ContactResponse>> {
+                                    s, integer ->
+                                    Pair(s, integer)
+                                })
+
                     }
                     .flatMap {
-                        contactresponse ->
-
-
+                        pair ->
+                        val message = pair.first
+                        val contactresponse = pair.second
                         Observable.fromIterable(contactresponse.MemberList)
                                 .filter { it.NickName == "晓_晨DEV" }
                                 .take(1)
                                 .flatMap {
-
                                     val sendMessageUrl = wechatModel.baseUrl + "/webwxsendmsg"
                                     val gson = Gson()
                                     val baseRequest = gson.toJson(wechatModel.param)
@@ -219,15 +318,13 @@ class MainActivity : AppCompatActivity() {
                                     val clientMsgId = DateKit.getCurrentUnixTime().toString() + StringKit.getRandomNumber(5)
                                     val Msg = JSONObject()
                                     Msg.put("Type", 1)
-                                    Msg.put("Content", "helllo")
+                                    Msg.put("Content", message)
                                     Msg.put("FromUserName", wechatModel.userName)
                                     Msg.put("ToUserName", it.UserName)
                                     Msg.put("LocalID", clientMsgId)
                                     Msg.put("ClientMsgId", clientMsgId)
                                     body.put("BaseRequest", baseRequest)
                                     body.put("Msg", Msg)
-
-
                                     api.getContacts(
                                             sendMessageUrl,
                                             body.toString(),
@@ -242,26 +339,34 @@ class MainActivity : AppCompatActivity() {
                                 }
 
 
-                    }
-                    .subscribe(
-                            { res ->
-
-                            },
-                            {
-                                error ->
-                                error.message?.let { it1 -> test(it1) }
-
-                            }
-
-                    );
-
+                    }.subscribe()
 
         }
 
+
     }
 
-    fun Activity.test(message: String) {
+    private fun writeResponseBodyToDisk(inputStream1: InputStream): File? {
+        val file = File(getCacheDir(), "temp.jpg");
+        val output = FileOutputStream(file)
 
-        Log.e("tan", message)
+        val buffer = ByteArray(40 * 1024)
+        var read = 0;
+        while (read != -1) {
+            read = inputStream1.read(buffer)
+            if (read != -1) {
+                output.write(buffer, 0, read)
+            }
+        }
+        output.flush();
+
+        return file;
+
     }
+
+}
+
+fun Activity.test(message: String) {
+
+    Log.e("tan", message)
 }
