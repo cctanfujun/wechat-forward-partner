@@ -11,7 +11,8 @@ data class WeChatModel(
         var pass_ticket :String = "",
         var param: Param = Param(),
         var baseUrl:String = "",
-        var cookie:String = ""
+        var cookie:String = "",
+        var userName:String = ""
 
 
 

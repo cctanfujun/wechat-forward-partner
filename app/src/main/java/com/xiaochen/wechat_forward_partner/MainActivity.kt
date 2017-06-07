@@ -13,6 +13,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.xiaochen.api.WeChatApi
 import com.xiaochen.blade.blade.kit.base.DateKit
+import com.xiaochen.blade.blade.kit.base.StringKit
 import com.xiaochen.blade.blade.kit.http.HttpRequest
 import com.xiaochen.robot.wechat.Constant
 import com.xiaochen.robot.wechat.model.WeChatModel
@@ -155,6 +156,8 @@ class MainActivity : AppCompatActivity() {
                     .observeOn(AndroidSchedulers.mainThread())
                     .flatMap {
                         response ->
+
+                        wechatModel.userName = response.User.UserName
                         test(Gson().toJson(response).toString())
                         val openNotifyurl = wechatModel.baseUrl + "/webwxstatusnotify"
 
@@ -202,24 +205,55 @@ class MainActivity : AppCompatActivity() {
                     }
                     .flatMap {
                         contactresponse ->
+
+
                         Observable.fromIterable(contactresponse.MemberList)
                                 .filter { it.NickName == "晓_晨DEV" }
                                 .take(1)
                                 .flatMap {
+
+                                    val sendMessageUrl = wechatModel.baseUrl + "/webwxsendmsg"
+                                    val gson = Gson()
+                                    val baseRequest = gson.toJson(wechatModel.param)
+                                    val body = JSONObject()
+                                    val clientMsgId = DateKit.getCurrentUnixTime().toString() + StringKit.getRandomNumber(5)
+                                    val Msg = JSONObject()
+                                    Msg.put("Type", 1)
+                                    Msg.put("Content", "helllo")
+                                    Msg.put("FromUserName", wechatModel.userName)
+                                    Msg.put("ToUserName", it.UserName)
+                                    Msg.put("LocalID", clientMsgId)
+                                    Msg.put("ClientMsgId", clientMsgId)
+                                    body.put("BaseRequest", baseRequest)
+                                    body.put("Msg", Msg)
+
+
                                     api.getContacts(
-                                            contactsUrl,
-                                            stringParams,
+                                            sendMessageUrl,
+                                            body.toString(),
                                             wechatModel.cookie,
                                             "application/json;charset=utf-8",
                                             DateKit.getCurrentUnixTime().toString(),
                                             wechatModel.pass_ticket,
                                             wechatModel.param.BaseRequest.Skey
                                     )
+                                            .subscribeOn(Schedulers.io())
+                                            .observeOn(AndroidSchedulers.mainThread())
                                 }
 
 
                     }
-                    .subscribe();
+                    .subscribe(
+                            { res ->
+
+                            },
+                            {
+                                error ->
+                                error.message?.let { it1 -> test(it1) }
+
+                            }
+
+                    );
 
 
         }

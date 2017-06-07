@@ -84,7 +84,7 @@ public class ContactResponse {
         public int StarFriend;
         public int AppAccountFlag;
         public int Statues;
-        public int AttrStatus;
+        public long AttrStatus;
         public String Province;
         public String City;
         public String Alias;
