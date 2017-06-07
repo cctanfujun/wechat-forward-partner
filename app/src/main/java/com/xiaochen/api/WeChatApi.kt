@@ -2,6 +2,7 @@ package com.xiaochen.api
 
 import com.xiaochen.blade.blade.kit.base.DateKit
 import com.xiaochen.robot.wechat.Constant
+import com.xiaochen.robot.wechat.model.ContactResponse
 import com.xiaochen.robot.wechat.model.WxInitResponse
 import io.reactivex.Observable
 import okhttp3.ResponseBody
@@ -39,22 +40,60 @@ interface WeChatApi {
             @Query("_") time: String = DateKit.getCurrentUnixTime().toString()
     ): Observable<String>
 
-    @FormUrlEncoded
-    @POST("https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxinit")
-    fun wxInit(@Field("params") params: String,
-               @Query("r") r: String = DateKit.getCurrentUnixTime().toString(),
-               @Query("pass_ticket") pass_ticket: String,
-               @Query("skey") skey: String
+    @POST
+    fun wxInit(
+            @Url url: String,
+            @Body params: String,
+            @Header("Cookie") cookie: String,
+            @Header("Content-Type") contentType: String,
+            @Query("r") r: String = DateKit.getCurrentUnixTime().toString(),
+            @Query("pass_ticket") pass_ticket: String,
+            @Query("skey") skey: String
 
-    ):Observable<WxInitResponse>
 
-    @FormUrlEncoded
-    @POST("https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxgetcontact")
-    fun getContacts(@Field("params") params: String,
-                    @Query("r") r: String = DateKit.getCurrentUnixTime().toString(),
-                    @Query("pass_ticket") pass_ticket: String,
-                    @Query("skey") skey: String
-    ):Observable<String>
+    ): Observable<WxInitResponse>
+
+    @POST
+    fun openNotify(
+            @Url url: String,
+            @Body params: String,
+            @Header("Cookie") cookie: String,
+            @Header("Content-Type") contentType: String,
+            @Query("lang") r: String = "zh_CN",
+            @Query("pass_ticket") pass_ticket: String
+
+
+    ): Observable<String>
+
+    @POST
+    fun getContacts(
+            @Url url: String,
+            @Body params: String,
+            @Header("Cookie") cookie: String,
+            @Header("Content-Type") contentType: String,
+            @Query("r") r: String = DateKit.getCurrentUnixTime().toString(),
+            @Query("pass_ticket") pass_ticket: String,
+            @Query("skey") skey: String
+    ): Observable<ContactResponse>
+
+
+
+    @POST
+    fun sendMessage(
+            @Url url: String,
+            @Body params: String,
+            @Header("Cookie") cookie: String,
+            @Header("Content-Type") contentType: String,
+            @Query("r") r: String = DateKit.getCurrentUnixTime().toString(),
+            @Query("pass_ticket") pass_ticket: String,
+            @Query("skey") skey: String
+    ): Observable<ContactResponse>
+
+
+
+
+
+
 
     @GET
     fun request(@Url url: String): Observable<String>

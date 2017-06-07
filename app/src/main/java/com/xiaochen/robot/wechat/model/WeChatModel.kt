@@ -9,7 +9,10 @@ data class WeChatModel(
         var uuid: String = "",
         var redirect_uri: String = "",
         var pass_ticket :String = "",
-        var param: Param = Param()
+        var param: Param = Param(),
+        var baseUrl:String = "",
+        var cookie:String = ""
+
 
 
 
