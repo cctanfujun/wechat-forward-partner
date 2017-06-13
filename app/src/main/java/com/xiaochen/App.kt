@@ -14,10 +14,9 @@ import io.reactivex.subjects.PublishSubject
 class App : Application() {
 
     companion object {
-
         @JvmField
         var context: Context? = null
-        val wechatModel = WeChatModel();
+        val wechatModel = WeChatModel()
         val  smsOb = PublishSubject.create<String>()
 
     }
@@ -26,8 +25,8 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        App.context = this
         Stetho.initializeWithDefaults(this)
-        App.context = this;
 
     }
 

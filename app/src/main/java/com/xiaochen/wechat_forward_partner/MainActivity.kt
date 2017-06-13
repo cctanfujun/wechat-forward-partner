@@ -87,7 +87,6 @@ class MainActivity : AppCompatActivity() {
                 .subscribeOn(Schedulers.io())
                 .map {
                     resStr ->
-                    val a = cookieJar
                     Matchers.match("window.QRLogin.uuid = \"(.*)\";", resStr)
                 }
                 .flatMap {
@@ -358,15 +357,13 @@ class MainActivity : AppCompatActivity() {
                 output.write(buffer, 0, read)
             }
         }
-        output.flush();
-
-        return file;
+        output.flush()
+        return file
 
     }
 
 }
 
 fun Activity.test(message: String) {
-
     Log.e("tan", message)
 }

@@ -8,22 +8,95 @@
     android:orientation="vertical"
     tools:context="com.xiaochen.wechat_forward_partner.MainActivity">
 
-    <ImageView
-        android:id="@+id/qr_img"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="5dp"
+        app:cardUseCompatPadding="true">
 
-    <Button
-        android:id="@+id/login"
+
+        <ImageView
+            android:id="@+id/qr_img"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp"
+            android:contentDescription="qrcode"/>
+
+        <TextView
+            android:id="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="230dp"
+            android:text="请用微信扫描此二维码"
+            android:textSize="20sp"
+            android:typeface="serif"/>
+
+        <ImageView
+            android:id="@+id/refresh"
+            android:layout_width="32dp"
+            android:src="@mipmap/refresh"
+            android:layout_height="32dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="10dp"/>
+
+    </android.support.v7.widget.CardView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/login"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_weight="1"
+            android:elevation="3dp"
+            android:text="运行"
+            android:typeface="serif"/>
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/testsend"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="6dp"
+            android:layout_weight="2"
+            android:elevation="3dp"
+            android:text="测试一下"/>
+
+
+    </LinearLayout>
+
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button"/>
+        android:layout_marginStart="22dp"
+        android:layout_marginTop="5dp"
+        android:text="运行信息:"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:typeface="sans"/>
+    <android.support.v7.widget.RecyclerView
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:id="@+id/message_rv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
-    <Button
-        android:id="@+id/testsend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="testsend"/>
+
+
 
 
 </LinearLayout>
