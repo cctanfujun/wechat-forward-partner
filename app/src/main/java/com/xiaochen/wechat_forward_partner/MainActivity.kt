@@ -1,6 +1,7 @@
 package com.xiaochen.wechat_forward_partner
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.util.Pair
 import android.support.v7.app.AppCompatActivity
@@ -14,6 +15,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.xiaochen.App
 import com.xiaochen.App.Companion.wechatModel
+import com.xiaochen.RePagerActivity
 import com.xiaochen.api.WeChatApi
 import com.xiaochen.blade.blade.kit.base.DateKit
 import com.xiaochen.blade.blade.kit.base.StringKit
@@ -49,13 +51,8 @@ class MainActivity : AppCompatActivity() {
 
 
         val imageView = findViewById(R.id.qr_img) as ImageView
-
         val cookieJar: CookieJar = MyCookieJar(MyCookieCache(), SharedPrefsCookiePersistor(applicationContext))
-
-
         val gson = GsonBuilder().setLenient().create()
-
-
         val cookieretrofit = Retrofit.Builder()
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(ScalarsConverterFactory.create())
@@ -81,7 +78,6 @@ class MainActivity : AppCompatActivity() {
 
         val cookieApi = cookieretrofit.create(WeChatApi::class.java)
         val api = retrofit.create(WeChatApi::class.java)
-
 
         api.getUUid(wechatModel.requestHeader)
                 .subscribeOn(Schedulers.io())
@@ -204,7 +200,14 @@ class MainActivity : AppCompatActivity() {
 
                     );
 
+            refresh.setOnClickListener {
+                val intent = Intent()
+                intent.setClass(this, RePagerActivity::class.java);
+                startActivity(intent)
+            }
             testsend.setOnClickListener {
+
+
                 Observable.just("测试信息")
                         .flatMap<Pair<String, ContactResponse>> {
                             message ->
@@ -339,6 +342,8 @@ class MainActivity : AppCompatActivity() {
 
 
                     }.subscribe()
+
+
 
         }
 
