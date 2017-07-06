@@ -16,12 +16,10 @@ class SmsReceiver : BroadcastReceiver() {
         if (intent.action == SMS_RECEIVED) {
             val bundle = intent.extras
             if (bundle != null) {
-                // get sms objects
                 val pdus = bundle.get("pdus") as Array<*>
                 if (pdus.isEmpty()) {
                     return
                 }
-                // large message might be broken into many
                 val messages = arrayOfNulls<SmsMessage>(pdus.size)
                 val sb = StringBuilder()
                 for (i in pdus.indices) {
@@ -33,7 +31,7 @@ class SmsReceiver : BroadcastReceiver() {
 
                 //Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
-                App.smsOb.onNext(message);
+                App.smsPublishSubject.onNext(message);
 
                 // prevent any other broadcast receivers from receiving broadcast
                 // abortBroadcast();
@@ -42,7 +40,6 @@ class SmsReceiver : BroadcastReceiver() {
     }
 
     companion object {
-
         private val SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED"
     }
 }

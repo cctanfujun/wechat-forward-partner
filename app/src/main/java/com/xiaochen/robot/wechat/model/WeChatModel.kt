@@ -13,8 +13,4 @@ data class WeChatModel(
         var baseUrl:String = "",
         var cookie:String = "",
         var userName:String = ""
-
-
-
-
 )
